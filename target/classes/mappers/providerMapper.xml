@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="cn.kgc.dao.ProviderMapper">
+
+    <select id="selectProviderList" resultType="cn.kgc.entity.Provider">
+        select * from smbms_provider
+        <where>
+            <if test="proCode!=null and proCode!=''">
+                proCode like concat('%',#{proCode},'%')
+            </if>
+            <if test="proName!=null and proName!=''">
+                and proName like concat('%',#{proName},'%')
+            </if>
+        </where>
+    </select>
+    <select id="queryProviderById" resultType="cn.kgc.entity.Provider">
+        select * from smbms_provider where id = #{id}
+    </select>
+    <insert id="addProvider">
+        INSERT INTO smbms_provider (proCode, proName, proContact, proPhone, proAddress, proFax, createdBy, creationDate)
+        VALUES (#{proCode},#{proName},#{proContact},#{proPhone},#{proAddress},#{proFax},#{createdBy},NOW())
+    </insert>
+
+    <update id="updateProviderById">
+        UPDATE smbms_provider
+        SET proCode = #{proCode},
+            proName = #{proName},
+            proContact = #{proContact},
+            proPhone = #{proPhone},
+            proAddress = #{proAddress},
+            proFax = #{proFax},
+            proDesc = #{proDesc},
+            modifyBy = #{modifyBy},
+            modifyDate = NOW()
+        WHERE id = #{id}
+    </update>
+
+    <delete id="deleteProviderById">
+        delete from smbms_provider where id = #{id}
+    </delete>
+</mapper>

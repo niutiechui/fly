@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:context="http://www.springframework.org/schema/context"
+       xmlns:tx="http://www.springframework.org/schema/tx"
+       xmlns:aop="http://www.springframework.org/schema/aop"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context.xsd http://www.springframework.org/schema/jdbc http://www.springframework.org/schema/jdbc/spring-jdbc.xsd http://www.springframework.org/schema/tx http://www.springframework.org/schema/tx/spring-tx.xsd http://www.springframework.org/schema/aop http://www.springframework.org/schema/aop/spring-aop.xsd">
+<!--开启全局注解扫描-->
+    <context:component-scan base-package="cn.kgc"/>
+
+    <!--.引入配置文件-->
+    <context:property-placeholder location="classpath*:db.properties"/>
+
+    <!--引入数据库文件-->
+    <bean id="dataSource" class="com.mchange.v2.c3p0.ComboPooledDataSource">
+        <property name="driverClass" value="${mysql.driver}"/>
+        <property name="jdbcUrl" value="${mysql.url}"/>
+        <property name="user" value="${mysql.user}"/>
+        <property name="password" value="${mysql.password}"/>
+    </bean>
+
+    <!--配置会话工厂-->
+    <bean class="org.mybatis.spring.SqlSessionFactoryBean">
+        <!--设置数据源-->
+        <property name="dataSource" ref="dataSource"/>
+        <!--设置别名-->
+        <property name="typeAliasesPackage" value="cn.kgc.entity"/>
+        <!--设置mapper文件的位置-->
+        <property name="mapperLocations" value="classpath*:/mappers/*Mapper.xml"/>
+        <property name="plugins">
+            <array>
+                <bean class="com.github.pagehelper.PageHelper">
+                    <property name="properties">
+                        <value>
+                            helperDialect=mysql
+                            reasonable=true
+                            autoRuntimeDialect=true
+                        </value>
+                    </property>
+                </bean>
+            </array>
+        </property>
+    </bean>
+
+    <!--开启dao层扫描-->
+    <bean class="org.mybatis.spring.mapper.MapperScannerConfigurer">
+        <property name="basePackage" value="cn.kgc.dao"/>
+    </bean>
+
+    <!--定义事务管理器-->
+    <bean id="txManager" class="org.springframework.jdbc.datasource.DataSourceTransactionManager">
+        <property name="dataSource" ref="dataSource"/>
+    </bean>
+
+
+
+        <tx:advice id="txAdvice" transaction-manager="txManager">
+            <tx:attributes>
+                <tx:method name="*"
+                           propagation="REQUIRED" rollback-for="java.lang.RuntimeException"/>
+            </tx:attributes>
+        </tx:advice>
+
+    <aop:config>
+        <aop:advisor advice-ref="txAdvice" pointcut="execution(* cn.kgc.service.*.*(..))"/>
+    </aop:config>
+</beans>
